@@ -1,0 +1,106 @@
+import React from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { Box, Typography } from '@mui/material';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+interface WavePoint {
+  date: string;
+  price: number;
+  type: string;
+}
+
+interface StockData {
+  symbol: string;
+  last_price: number;
+  wave_analysis: {
+    wave_points: WavePoint[];
+  };
+  technical_indicators: {
+    sma20: number;
+    rsi: number;
+  };
+}
+
+interface StockChartProps {
+  stockData: StockData;
+}
+
+const StockChart: React.FC<StockChartProps> = ({ stockData }) => {
+  const wavePoints = stockData.wave_analysis.wave_points;
+
+  const data = {
+    labels: wavePoints.map((point) => new Date(point.date).toLocaleDateString()),
+    datasets: [
+      {
+        label: 'Stock Price',
+        data: wavePoints.map((point) => point.price),
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1,
+      },
+      {
+        label: 'Impulse Waves',
+        data: wavePoints.map((point) => (point.type === 'impulse' ? point.price : null)),
+        borderColor: 'rgb(255, 99, 132)',
+        pointBackgroundColor: 'rgb(255, 99, 132)',
+        pointRadius: 6,
+        showLine: false,
+      },
+      {
+        label: 'Corrective Waves',
+        data: wavePoints.map((point) => (point.type === 'corrective' ? point.price : null)),
+        borderColor: 'rgb(54, 162, 235)',
+        pointBackgroundColor: 'rgb(54, 162, 235)',
+        pointRadius: 6,
+        showLine: false,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: `${stockData.symbol} Price Chart with Elliott Wave Analysis`,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: false,
+      },
+    },
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Price Chart with Elliott Wave Analysis
+      </Typography>
+      <Line data={data} options={options} />
+    </Box>
+  );
+};
+
+export default StockChart;
